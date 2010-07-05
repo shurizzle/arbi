@@ -1,0 +1,7 @@
+#!/usr/bin/env ruby
+
+require 'arbi'
+
+client = Arbi::Client.new
+client.start
+client.close

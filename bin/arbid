@@ -1,0 +1,13 @@
+#!/usr/bin/env ruby
+
+require 'arbi'
+
+server = Arbi::Server.new
+
+["KILL", "ABRT", "INT", "QUIT"].each do |sig|
+    trap(sig){
+        server.close
+    }
+end
+
+server.start
