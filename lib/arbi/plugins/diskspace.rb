@@ -17,6 +17,28 @@ class Diskspace
         devices
     end
 
+    def self.protocolize devices
+        str = "devices:\r\n"
+        devices.each do |device|
+            str += "#{device['device']}|#{device['point']}|#{device['usage']}|#{self.unitize device['space']}\r\n"
+        end
+        str + "END\r\n"
+    end
+
+    def self.friendlize raw
+        raw = raw.to_s.strip
+        dmax = [raw.lines.map{|line|line.split(/\|/)[0].length}.max + 4, 8].max
+        mmax = [raw.lines.map{|line|line.split(/\|/)[1].length}.max + 4, 7].max
+        str = "DEVICE".ljust(dmax) + "MOUNT".ljust(mmax) + "USE %  SPACE\r\n"
+        raw.split(/\r?\n/).each { |line|
+            datas = line.split /\|/
+            str << datas[0].ljust(dmax) + datas[1].ljust(mmax) + datas[2].ljust(7) + datas[3] + "\r\n"
+        }
+        str
+    end
+
+private
+
     def get_devices
         devices = Array.new
         Filesystem.mounts do |fs|
@@ -36,26 +58,6 @@ class Diskspace
             end
         end
         misure.round.to_s + u
-    end
-
-    def self.protocolize devices
-        str = "devices:\r\n"
-        devices.each do |device|
-            str += "#{device['device']}|#{device['point']}|#{device['usage']}|#{self.unitize device['space']}\r\n"
-        end
-        str + "END\r\n"
-    end
-
-    def self.friendlize raw
-        raw = raw.to_s.strip
-        dmax = [raw.lines.map{|line|line.split(/\|/)[0].length}.max + 4, 8].max
-        mmax = [raw.lines.map{|line|line.split(/\|/)[1].length}.max + 4, 7].max
-        str = "DEVICE".ljust(dmax) + "MOUNT".ljust(mmax) + "USE %  SPACE\r\n"
-        raw.split(/\r?\n/).each { |line|
-            datas = line.split /\|/
-            str << datas[0].ljust(dmax) + datas[1].ljust(mmax) + datas[2].ljust(7) + datas[3] + "\r\n"
-        }
-        str
     end
 end
 

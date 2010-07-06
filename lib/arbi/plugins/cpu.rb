@@ -16,28 +16,6 @@ class Cpu
         end
     end
 
-    def update
-        file_get_content('/proc/stat').split("\n").each do |line|
-            if line =~ /^cpu/
-                datas = line.split /\s+/
-                name = datas.shift
-                name = (name == 'cpu' ? 'AVERAGE' : name)
-                total = eval datas.join('+')
-                idle = datas[3].to_i
-
-                if not @prev[:idle].include? name or not @prev[:total].include? name
-                    @prev[:idle][name] = @prev[:total][name] = 0
-                end
-
-                @percents[name] = (100 * ((total - @prev[:total][name]) - (idle - @prev[:idle][name])) / (total - @prev[:total][name])).to_s + "%"
-                @prev[:idle][name] = idle
-                @prev[:total][name] = total
-            end
-        end
-        
-        average = {"AVERAGE" => @percents["AVERAGE"]} and @percents.delete("AVERAGE") and @percents.merge!(average)
-    end
-
     def get_infos
         @mutex.lock
         perc = @percents
@@ -66,6 +44,30 @@ class Cpu
 
     def close
         @serv.kill
+    end
+
+private
+
+    def update
+        file_get_content('/proc/stat').split("\n").each do |line|
+            if line =~ /^cpu/
+                datas = line.split /\s+/
+                name = datas.shift
+                name = (name == 'cpu' ? 'AVERAGE' : name)
+                total = eval datas.join('+')
+                idle = datas[3].to_i
+
+                if not @prev[:idle].include? name or not @prev[:total].include? name
+                    @prev[:idle][name] = @prev[:total][name] = 0
+                end
+
+                @percents[name] = (100 * ((total - @prev[:total][name]) - (idle - @prev[:idle][name])) / (total - @prev[:total][name])).to_s + "%"
+                @prev[:idle][name] = idle
+                @prev[:total][name] = total
+            end
+        end
+        
+        average = {"AVERAGE" => @percents["AVERAGE"]} and @percents.delete("AVERAGE") and @percents.merge!(average)
     end
 end
 

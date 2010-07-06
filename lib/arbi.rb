@@ -13,7 +13,7 @@ module Arbi
     require 'getopt/long'
     include Getopt
 
-    VERSION = "1.0.1"
+    VERSION = "1.0.2"
 
     @cmd = []
 
@@ -42,25 +42,6 @@ module Arbi
             @server = TCPServer.new(@address, @port)
         end
 
-        def parse_args
-            begin
-                opts = Arbi::Long.getopts(
-                    ["--bind-address", "-a", Arbi::REQUIRED],
-                    ["--port", "-p", Arbi::REQUIRED],
-                    ["--help", "-h", Arbi::BOOLEAN],
-                    ["--version", "-v", Arbi::BOOLEAN]
-                )
-            rescue Getopt::Long::Error => e
-                puts "Arguments error: #{e}"
-                exit 0
-            end
-
-            @address = opts['a']    if opts['a']
-            @port    = opts['p']    if opts['p']
-            show_help               if opts['h']
-            Arbi::show_version      if opts['v']
-        end
-
         def show_help
             puts "Arbi Server, USAGE:"
             puts "\t#{$0} [switches]"
@@ -78,6 +59,39 @@ module Arbi
                 end
             end
             @servert.join
+        end
+
+        def close
+            @sessions.each{ |session|
+                session.close
+            }
+
+            @threads.each{ |thread|
+                thread.kill
+            }
+            @server.close
+            @servert.kill
+        end
+
+    private
+
+        def parse_args
+            begin
+                opts = Arbi::Long.getopts(
+                    ["--bind-address", "-a", Arbi::REQUIRED],
+                    ["--port", "-p", Arbi::REQUIRED],
+                    ["--help", "-h", Arbi::BOOLEAN],
+                    ["--version", "-v", Arbi::BOOLEAN]
+                )
+            rescue Getopt::Long::Error => e
+                puts "Arguments error: #{e}"
+                exit 0
+            end
+
+            @address = opts['a']    if opts['a']
+            @port    = opts['p']    if opts['p']
+            show_help               if opts['h']
+            Arbi::show_version      if opts['v']
         end
 
         def new_client session
@@ -117,18 +131,6 @@ module Arbi
             }
             @sessions.push session
         end
-
-        def close
-            @sessions.each{ |session|
-                session.close
-            }
-
-            @threads.each{ |thread|
-                thread.kill
-            }
-            @server.close
-            @servert.kill
-        end
     end
 
     class Client
@@ -138,29 +140,6 @@ module Arbi
             @command = "help\r\nquit\r\n"
             parse_args
             @sock = TCPSocket.new(@address, @port)
-        end
-
-        def parse_args
-            begin
-                opts = Arbi::Long.getopts(
-                    ["--help"],
-                    ["--version"],
-                    ["--address", "-a", Arbi::REQUIRED],
-                    ["--port", "-p", Arbi::REQUIRED],
-                    ["--commands", "-c", Arbi::REQUIRED]
-                )
-            rescue Arbi::Long::Error => e
-                p ARGV
-                $stderr.puts "Arguments error: #{e}"
-                exit 1
-            end
-
-            Arbi::show_version      if opts["v"]
-            show_help               if opts["h"]
-            @address    = opts["a"] if opts["a"]
-            @port       = opts["p"] if opts["p"]
-            @command    = "#{opts["c"]},quit".gsub(/,+/, ',').gsub(/\s+/, '').split(/,/).
-                delete_if{|x|x=~/^quit$/i}.uniq.push('quit', '').join("\r\n") if opts["c"]
         end
 
         def start
@@ -202,6 +181,31 @@ module Arbi
             puts "\t\t   --port|-p\tset the port to connect, default to 40"
             puts "\t\t--command|-c\tset commands to execute, defaults is 'help'"
             exit 0
+        end
+
+    private
+
+        def parse_args
+            begin
+                opts = Arbi::Long.getopts(
+                    ["--help"],
+                    ["--version"],
+                    ["--address", "-a", Arbi::REQUIRED],
+                    ["--port", "-p", Arbi::REQUIRED],
+                    ["--commands", "-c", Arbi::REQUIRED]
+                )
+            rescue Arbi::Long::Error => e
+                p ARGV
+                $stderr.puts "Arguments error: #{e}"
+                exit 1
+            end
+
+            Arbi::show_version      if opts["v"]
+            show_help               if opts["h"]
+            @address    = opts["a"] if opts["a"]
+            @port       = opts["p"] if opts["p"]
+            @command    = "#{opts["c"]},quit".gsub(/,+/, ',').gsub(/\s+/, '').split(/,/).
+                delete_if{|x|x=~/^quit$/i}.uniq.push('quit', '').join("\r\n") if opts["c"]
         end
     end
 end

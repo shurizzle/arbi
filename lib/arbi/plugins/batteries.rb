@@ -14,6 +14,35 @@ class Batteries
         batteries.merge average batteries
     end
 
+    def self.protocolize batteries
+        str = "batteries:\r\n"
+        batteries.each { |key, value|
+            str << "#{key}|#{value["percent"] || '-'}"
+            if key != "AVERAGE"
+                str << "|#{value["state"] || '-'}|#{value["sanity"] || '-'}"
+            end
+            str << "\r\n"
+        }
+        str << "END\r\n"
+    end
+
+    def self.friendlize raw
+        raw.strip!
+        max = raw.lines.map{|x| x.split(/\|/)[0].length}.max + 4
+        str = "NAME".ljust(max) + "PERC    STATE       SANITY\r\n"
+        raw.split(/\r?\n/).each { |line|
+            datas = line.split /\|/
+            str << datas[0].ljust(max) + datas[1].ljust(8)
+            if datas[0] != "AVERAGE"
+                str << datas[2].ljust(12) + datas[3]
+            end
+            str << "\r\n"
+        }
+        str
+    end
+
+private
+
     def average batteries
         avg, n = 0, 0
         batteries.each do |key, value|
@@ -46,33 +75,6 @@ class Batteries
                     (info.match(/^last full capacity:\s*?([^\s]+?) mAh$/)[1].to_i) *
                     (state.match(/^remaining capacity:\s*?([^\s]+?) mAh$/)[1].to_i)).gsub(/\.0%$/, '%')
         }})
-    end
-
-    def self.protocolize batteries
-        str = "batteries:\r\n"
-        batteries.each { |key, value|
-            str << "#{key}|#{value["percent"] || '-'}"
-            if key != "AVERAGE"
-                str << "|#{value["state"] || '-'}|#{value["sanity"] || '-'}"
-            end
-            str << "\r\n"
-        }
-        str << "END\r\n"
-    end
-
-    def self.friendlize raw
-        raw.strip!
-        max = raw.lines.map{|x| x.split(/\|/)[0].length}.max + 4
-        str = "NAME".ljust(max) + "PERC    STATE       SANITY\r\n"
-        raw.split(/\r?\n/).each { |line|
-            datas = line.split /\|/
-            str << datas[0].ljust(max) + datas[1].ljust(8)
-            if datas[0] != "AVERAGE"
-                str << datas[2].ljust(12) + datas[3]
-            end
-            str << "\r\n"
-        }
-        str
     end
 end
 

@@ -23,16 +23,6 @@ class Thermal
         @temperatures.merge average
     end
 
-    def average
-        avg, n = 0, 0
-        @temperatures.each do |value, key|
-            avg += key["temperature"].to_i
-            n += 1
-        end
-        avg = (sprintf '%.1f', (avg.to_f / n)).gsub /\.0$/, ''
-        return ({'AVERAGE' => {'temperature' => avg, 'trip_critical' => false}})
-    end
-
     def self.protocolize temperatures
         str = "thermal:\r\n"
         temperatures.each do |key, value|
@@ -53,6 +43,18 @@ class Thermal
             str << "\r\n"
         }
         str
+    end
+
+private
+
+    def average
+        avg, n = 0, 0
+        @temperatures.each do |value, key|
+            avg += key["temperature"].to_i
+            n += 1
+        end
+        avg = (sprintf '%.1f', (avg.to_f / n)).gsub /\.0$/, ''
+        return ({'AVERAGE' => {'temperature' => avg, 'trip_critical' => false}})
     end
 end
 
