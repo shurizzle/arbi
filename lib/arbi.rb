@@ -13,7 +13,7 @@ module Arbi
     require 'getopt/long'
     include Getopt
 
-    VERSION = "1.0.2"
+    VERSION = "1.0.5"
 
     @cmd = []
 
@@ -28,6 +28,26 @@ module Arbi
     def self.show_version
         puts "Arbi (Client|Server) v#{VERSION}"
         exit 0
+    end
+
+    def self.connect address = '127.0.0.1', port = '6969'
+        @@connection = TCPSocket.new address, port
+        @@connection.print "SERIAL\r\n"
+    end
+
+    def self.connected?
+        return true if @@connection
+        false
+    end
+
+    def self.connection
+        @@connection
+    end
+
+    def self.get what
+        raise "Arbi isn't connected to the server" unless self.connected?
+        @@connection.print what + "\r\n"
+        eval @@connection.gets.strip
     end
 
     class Server
@@ -73,6 +93,10 @@ module Arbi
             @servert.kill
         end
 
+        def finalize
+            close
+        end
+
     private
 
         def parse_args
@@ -80,8 +104,8 @@ module Arbi
                 opts = Arbi::Long.getopts(
                     ["--bind-address", "-a", Arbi::REQUIRED],
                     ["--port", "-p", Arbi::REQUIRED],
-                    ["--help", "-h", Arbi::BOOLEAN],
-                    ["--version", "-v", Arbi::BOOLEAN]
+                    ["--help"],
+                    ["--version"]
                 )
             rescue Getopt::Long::Error => e
                 puts "Arguments error: #{e}"
@@ -96,12 +120,13 @@ module Arbi
 
         def new_client session
             @threads.push Thread.start(session){ |session|
+                ser = false
                 while message = session.gets
                     toggle = true
                     message = message.strip
                     break if message =~ /^QUIT$/i
 
-                    if message =~ /^HELP$/i
+                    if message =~ /^HELP$/i and !ser
                         session.print "help:\r\n"
                         Arbi::cmd.each { |pair|
                             session.print "#{pair[0]}\r\n"
@@ -113,18 +138,27 @@ module Arbi
                         toggle = !toggle
                     end
 
-                    if message =~ /^VERSION$/i
+                    if message =~ /^VERSION$/i and !ser
                         session.print "version:\r\nArbi (Client|Server) v#{VERSION}\r\nEND\r\n"
+                        toggle = !toggle
+                    end
+
+                    if message =~ /^SERIAL$/i
+                        ser = !ser
                         toggle = !toggle
                     end
 
                     Arbi::cmd.each { |pair|
                         if message =~ pair[0]
-                            session.print (pair[1].class == Class ? pair[1].protocolize(pair[1].get_infos) : pair[1].class.protocolize(pair[1].get_infos))
+                            if ser
+                                session.print pair[1].get_infos.inspect + "\r\n"
+                            else
+                                session.print (pair[1].class == Class ? pair[1].protocolize(pair[1].get_infos) : pair[1].class.protocolize(pair[1].get_infos))
+                            end
                             toggle = !toggle
                         end
                     }
-                    session.print "error:\r\nCommand doesn't exist\r\nEND\r\n" if toggle
+                    session.print (ser ? "{'error' => 'command desn\\'t exist'}" : "error:\r\nCommand doesn't exist\r\nEND\r\n") if toggle
                 end
                 @sessions -= [session]
                 session.close
@@ -158,7 +192,7 @@ module Arbi
                     next
                 when /^help:$/i
                     puts buff
-                when /^version$:/i
+                when /^version:$/i
                     puts buff
                 end
                 Arbi::cmd.each{|cmd|
@@ -170,6 +204,10 @@ module Arbi
 
         def close
             @sock.close
+        end
+
+        def finalize
+            close
         end
 
         def show_help
@@ -204,8 +242,8 @@ module Arbi
             show_help               if opts["h"]
             @address    = opts["a"] if opts["a"]
             @port       = opts["p"] if opts["p"]
-            @command    = "#{opts["c"]},quit".gsub(/,+/, ',').gsub(/\s+/, '').split(/,/).
-                delete_if{|x|x=~/^quit$/i}.uniq.push('quit', '').join("\r\n") if opts["c"]
+            @command    = "#{opts["c"]}".gsub(/,+/, ',').gsub(/\s+/, '').split(/,/).
+                uniq.delete_if{|x|x=~/^quit$/i}.push("quit\r\n").join("\r\n") if opts["c"]
         end
     end
 end

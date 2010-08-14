@@ -1,5 +1,11 @@
 # encoding: utf-8
 
+class NilClass
+    def [](*args)
+        return self
+    end
+end
+
 class Thermal
     require 'arbi/common'
 

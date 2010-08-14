@@ -1,6 +1,6 @@
 Gem::Specification.new {|g|
     g.name          = 'arbi'
-    g.version       = '1.0.2'
+    g.version       = '1.0.5'
     g.author        = 'shura'
     g.email         = 'shura1991@gmail.com'
     g.homepage      = 'http://github.com/shurizzle/arbi'
@@ -10,5 +10,8 @@ Gem::Specification.new {|g|
     g.files         = Dir.glob('lib/**/*.rb')
     g.require_path  = 'lib'
     g.executables   = ['arbid', 'arbi']
-    g.has_rdoc      = false
+    g.has_rdoc      = true
+
+    g.add_dependency('getopt')
+    g.add_dependency('sys-filesystem')
 }
