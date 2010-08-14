@@ -1,0 +1,81 @@
+#!/usr/bin/ruby
+# encoding: utf-8
+
+require 'arbi'
+
+class Float
+    def s
+        ('%.1f' % self).gsub(/\.0$/, '')
+    end
+end
+
+Arbi.connect
+
+while true
+    system("mocp -S 2>/dev/null") unless File.exists? "/home/shura/.moc/pid"
+    
+    #=begin MUSIC
+    print "^i(/home/shura/.mycon/music.xbm)"
+
+    case `mocp -i 2>/dev/null`.scan(/^State: (.+?)$/)[0][0]
+        when "PLAY"
+            print " ^i(/home/shura/.mycon/play.xbm)"
+        when "PAUSE"
+            print " ^i(/home/shura/.mycon/pause.xbm)"
+        when "STOP"
+            print " ^i(/home/shura/.mycon/stop.xbm)"
+    end
+    #=end
+
+    #=begin BATTERY
+    print " ^i(/home/shura/.mycon/bat.xbm) "
+    batteries = Arbi.get "batteries"
+    if batteries["BAT0"] == {'sanity' => false, 'state' => false, 'percent' => false}
+        print "AC"
+    else
+        print batteries["AVERAGE"]["percent"]
+    end
+    #=end
+
+    #=begin CPU
+    print " ^i(/home/shura/.mycon/cpu.xbm) #{Arbi.get("cpu")["AVERAGE"]}"
+    #=end
+
+    #=begin RAM
+    print " ^i(/home/shura/.mycon/ram.xbm) #{Arbi.get("ram")["used"]}"
+    #=end
+
+    #=begin THERMAL
+    print " ^i(/home/shura/.mycon/tem.xbm) #{Arbi.get("thermal")["AVERAGE"]["temperature"]}°C"
+    #=end
+
+    #=begin DISKS SPACE
+    disks = Arbi.get "diskstats"
+    print " ^i(/home/shura/.mycon/hdd.xbm)"
+    disks.each{|disk|
+        if ['/dev/sda6', '/dev/sda7'].include? disk['device']
+            print " #{disk['point']} #{disk['usage']}"
+        end
+    }
+    #=end
+
+    #=begin PACMAN
+    print " ^i(/home/shura/.mycon/arch.xbm) #{`pacman -Qu`.split(/\r?\n/).length}"
+    #=end
+
+    #=begin NET
+    net = Arbi.get "net"
+    if net["wlan0"][:state]
+        print " ^i(/home/shura/.mycon/wifi.xbm) #{net["wlan0"][:essid]}:#{net["wlan0"][:quality]}"
+        print " ^i(/home/shura/.mycon/up.xbm) #{net["wlan0"][:up].s} ^i(/home/shura/.mycon/down.xbm) #{net["wlan0"][:down].s}"
+    elsif net["eth0"][:state]
+        print " ^i(/home/shura/.mycon/up.xbm) #{net["eht0"][:up].s} ^i(/home/shura/.mycon/down.xbm) #{net["eth0"][:down].s}"
+    end
+    #=end
+
+    #=begin DATE
+    puts " | #{`date +"%d/%m/%Y %H:%M"`.strip}"
+    #=end
+
+    sleep 2
+end
