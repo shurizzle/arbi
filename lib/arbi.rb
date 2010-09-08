@@ -10,8 +10,7 @@ end
 
 module Arbi
 
-    require 'getopt/long'
-    include Getopt
+    require 'optparse'
 
     VERSION = "1.0.5"
 
@@ -62,16 +61,6 @@ module Arbi
             @server = TCPServer.new(@address, @port)
         end
 
-        def show_help
-            puts "Arbi Server, USAGE:"
-            puts "\t#{$0} [switches]"
-            puts "\t\t--bind-address|-a\tAddress to bind, default to \"127.0.0.1\""
-            puts "\t\t        --port|-p\tPort to use for server, default to 40"
-            puts "\t\t     --version|-v\tPrint version and exit"
-            puts "\t\t        --help|-h\tPrint this help and exit"
-            exit 0
-        end
-
         def start
             @servert = Thread.new do
                 while(session = @server.accept)
@@ -100,22 +89,30 @@ module Arbi
     private
 
         def parse_args
-            begin
-                opts = Arbi::Long.getopts(
-                    ["--bind-address", "-a", Arbi::REQUIRED],
-                    ["--port", "-p", Arbi::REQUIRED],
-                    ["--help"],
-                    ["--version"]
-                )
-            rescue Getopt::Long::Error => e
-                puts "Arguments error: #{e}"
-                exit 0
-            end
+             OptionParser.new do |o|
 
-            @address = opts['a']    if opts['a']
-            @port    = opts['p']    if opts['p']
-            show_help               if opts['h']
-            Arbi::show_version      if opts['v']
+                 o.program_name = 'arbid'
+                 o.banner       = 'Arbi server, USAGE:'
+
+                 o.on('-a', '--bind-address ADDR', 'Address to bind, default to "127.0.0.1"') do |addr|
+                     @address = addr
+                 end
+
+                 o.on('-p', '--port PORT', 'Port to use for server, default to 40') do |port|
+                     @port = port
+                 end
+
+                 o.on('-V', '--version', 'Print version and exit') do
+                     puts Arbi::show_version
+                     exit 0
+                 end
+
+                 o.on_tail('-h', '--help', 'Print this help and exit') do
+                     puts o.to_s
+                     exit 0
+                 end
+
+             end.parse!
         end
 
         def new_client session
@@ -210,40 +207,44 @@ module Arbi
             close
         end
 
-        def show_help
-            puts "Arbi client:"
-            puts "\tUSAGE: #{$0} [switches]"
-            puts "\t\t   --help|-h\tshow this helps"
-            puts "\t\t--version|-v\tshow version of arbi"
-            puts "\t\t--address|-a\tset the address to connect, default to 'localhost'"
-            puts "\t\t   --port|-p\tset the port to connect, default to 40"
-            puts "\t\t--command|-c\tset commands to execute, defaults is 'help'"
-            exit 0
-        end
-
     private
 
         def parse_args
-            begin
-                opts = Arbi::Long.getopts(
-                    ["--help"],
-                    ["--version"],
-                    ["--address", "-a", Arbi::REQUIRED],
-                    ["--port", "-p", Arbi::REQUIRED],
-                    ["--commands", "-c", Arbi::REQUIRED]
-                )
-            rescue Arbi::Long::Error => e
-                p ARGV
-                $stderr.puts "Arguments error: #{e}"
-                exit 1
-            end
+             OptionParser.new do |o|
 
-            Arbi::show_version      if opts["v"]
-            show_help               if opts["h"]
-            @address    = opts["a"] if opts["a"]
-            @port       = opts["p"] if opts["p"]
-            @command    = "#{opts["c"]}".gsub(/,+/, ',').gsub(/\s+/, '').split(/,/).
-                uniq.delete_if{|x|x=~/^quit$/i}.push("quit\r\n").join("\r\n") if opts["c"]
+                 o.program_name = 'arbi'
+                 o.banner       = 'Arbi client, USAGE:'
+
+                 o.on('-c', '--command COMMANDS', Array, 'Set commands to execute, default is \'help\'') do |cmd|
+                     cmd.delete('quit')
+                     @command = (cmd&cmd).push('quit').inject(''){|str, cmd| str<<"#{cmd}\r\n"}
+                 end
+
+                 o.on('-a', '--address ADDR', 'Set address to connect, default to "127.0.0.1"') do |addr|
+                     @address = addr
+                 end
+
+                 o.on('-p', '--port PORT', 'Set port to connect, default to 40') do |port|
+                     @port = port
+                 end
+
+                 o.on('-V', '--version', 'Print version and exit') do
+                     puts Arbi::show_version
+                     exit 0
+                 end
+
+                 o.on_tail('-h', '--help', 'Print this help and exit') do
+                     @help = o.to_s
+                     puts @help
+                     exit 0
+                 end
+
+             end.parse! 
+
+        rescue OptionParser::MissingArgument
+            puts "At least one argument is required for this option."
+            puts "See help for details."
+            exit -1
         end
     end
 end
