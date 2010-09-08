@@ -12,6 +12,5 @@ Gem::Specification.new {|g|
     g.executables   = ['arbid', 'arbi']
     g.has_rdoc      = true
 
-    g.add_dependency('getopt')
     g.add_dependency('sys-filesystem')
 }
