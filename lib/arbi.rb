@@ -113,6 +113,11 @@ module Arbi
                  end
 
              end.parse!
+
+        rescue OptionParser::MissingArgument
+            puts "At least one argument is required for this option."
+            puts "See help for details."
+            exit -1
         end
 
         def new_client session
@@ -171,6 +176,10 @@ module Arbi
             @command = "help\r\nquit\r\n"
             parse_args
             @sock = TCPSocket.new(@address, @port)
+            
+        rescue Errno::ECONNREFUSED
+            puts "You have to start arbid demon first, or specify a correct port."
+            exit -2
         end
 
         def start
