@@ -1,6 +1,6 @@
 Gem::Specification.new {|g|
     g.name          = 'arbi'
-    g.version       = '1.0.6'
+    g.version       = '1.0.7a'
     g.author        = 'shura'
     g.email         = 'shura1991@gmail.com'
     g.homepage      = 'http://github.com/shurizzle/arbi'

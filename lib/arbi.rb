@@ -12,7 +12,7 @@ module Arbi
 
     require 'optparse'
 
-    VERSION = "1.0.5"
+    VERSION = "1.0.7a"
 
     @cmd = []
 
