@@ -12,7 +12,7 @@ module Arbi
 
     require 'optparse'
 
-    VERSION = "1.0.7a"
+    VERSION = "1.0.7"
 
     @cmd = []
 
@@ -44,7 +44,7 @@ module Arbi
     end
 
     def self.get what
-        raise "Arbi isn't connected to the server" unless self.connected?
+        self.connect unless self.connected?
         @@connection.print what + "\r\n"
         eval @@connection.gets.strip
     end
@@ -98,7 +98,7 @@ module Arbi
                      @address = addr
                  end
 
-                 o.on('-p', '--port PORT', 'Port to use for server, default to 40') do |port|
+                 o.on('-p', '--port PORT', 'Port to use for server, default to 6969') do |port|
                      @port = port
                  end
 
@@ -233,7 +233,7 @@ module Arbi
                      @address = addr
                  end
 
-                 o.on('-p', '--port PORT', 'Set port to connect, default to 40') do |port|
+                 o.on('-p', '--port PORT', 'Set port to connect, default to 6969') do |port|
                      @port = port
                  end
 
