@@ -9,7 +9,6 @@ class Regexp
 end
 
 module Arbi
-
     require 'optparse'
 
     VERSION = "1.0.7"
