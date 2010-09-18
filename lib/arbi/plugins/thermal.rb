@@ -1,5 +1,3 @@
-# encoding: utf-8
-
 class NilClass
     def [](*args)
         return self
@@ -44,8 +42,8 @@ class Thermal
         str = "NAME".ljust(nmax) + "TEMP".ljust(tmax) + "CRITICAL\r\n"
         raw.split(/\r?\n/).each { |line|
             datas = line.split /\|/
-            str << datas[0].ljust(nmax) + "#{datas[1]}°C".ljust(tmax)
-            str << "#{datas[2]}°C" if datas[2]
+            str << datas[0].ljust(nmax) + "#{datas[1]}\xB0C".ljust(tmax)
+            str << "#{datas[2]}\xB0C" if datas[2]
             str << "\r\n"
         }
         str

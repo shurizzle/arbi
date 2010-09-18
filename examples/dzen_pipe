@@ -136,7 +136,7 @@ while true
     #=end
 
     #=begin THERMAL
-    dzen.print " #{icon 'tem.xbm'} #{Arbi.get("thermal")["AVERAGE"]["temperature"]}°C"
+    dzen.print " #{icon 'tem.xbm'} #{Arbi.get("thermal")["AVERAGE"]["temperature"]}\xB0C"
     #=end
 
     #=begin MAILS
