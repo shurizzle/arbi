@@ -1,0 +1,15 @@
+--- 
+:server: 
+  :address: 127.0.0.1
+  :port: 6969
+:client: 
+  :address: 127.0.0.1
+  :port: 6969
+  :default_cmd: 
+  - help
+  - quit
+:modules: 
+  :path: []
+
+  :modules: []
+
