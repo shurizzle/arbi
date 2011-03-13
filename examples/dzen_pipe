@@ -119,7 +119,7 @@ while true
 
     #=begin BATTERY
     dzen.print " #{icon 'bat.xbm'} "
-    batteries = Arbi.get "batteries"
+    batteries = Arbi.get "battery"
     if batteries["BAT0"] == {'sanity' => false, 'state' => false, 'percent' => false}
         dzen.print "AC"
     else
