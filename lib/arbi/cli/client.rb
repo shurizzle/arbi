@@ -50,7 +50,7 @@ protected
       o.program_name  = 'arbi'
       o.banner        = "Arbi client v#{Arbi::VERSION}, USAGE:"
 
-      o.on('-c', '--config CONF', 'Select configurations path, default to /etc/arbi.conf') do |conf|
+      o.on('-C', '--config CONF', 'Select configurations path, default to /etc/arbi.conf') do |conf|
         Arbi::Config.parse(conf)
       end
 

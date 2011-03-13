@@ -41,7 +41,7 @@ protected
       o.program_name  = 'arbid'
       o.banner        = "Arbi server v#{Arbi::VERSION}, USAGE:"
 
-      o.on('-c', '--config CONF', 'Select configurations path, default to /etc/arbi.conf') do |conf|
+      o.on('-C', '--config CONF', 'Select configurations path, default to /etc/arbi.conf') do |conf|
         Arbi::Config.parse(conf)
       end
 
@@ -58,7 +58,7 @@ protected
         exit 0
       end
 
-      o.on_tail('h', '--help', 'Print this help and exit') do
+      o.on_tail('-h', '--help', 'Print this help and exit') do
         puts o.to_s
         exit 0
       end
