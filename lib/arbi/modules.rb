@@ -170,6 +170,7 @@ end
 load_module('help')
 load_module('version')
 load_module('cpu')
+load_module('thermal')
 load_module('ram')
 load_module('net')
 load_module('adapter')

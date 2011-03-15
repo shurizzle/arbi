@@ -31,7 +31,7 @@ class Net < Arbi::Modules::Module
     @prev = {:up => {}, :down => {}}
     @datas = []
 
-    every 2, :timeout => 10, &self.method(:update)
+    every 1, :timeout => 10, &self.method(:update)
   end
 
   def valid?
@@ -53,6 +53,7 @@ class Net < Arbi::Modules::Module
     })
   end
 
+protected
   def update
     stats = {}
     File.read('/proc/net/dev').gsub(/^.*\|.*?\n/m, '').each_line {|line|
@@ -63,8 +64,8 @@ class Net < Arbi::Modules::Module
       @prev[:up][name] = @prev[:down][name] = 0 if !@prev[:up].include?(name) and !@prev[:down].include?(name)
 
       stats[name] = {
-        up:       "%.1fkB" % [( up  - @prev[ :up ][name]).to_f / 1024],
-        down:     "%.1fkB" % [(down - @prev[:down][name]).to_f / 1024],
+        up:       "%.1f kB/s" % [( up  - @prev[ :up ][name]).to_f / 1024],
+        down:     "%.1f kB/s" % [(down - @prev[:down][name]).to_f / 1024],
         state:    (File.read('/proc/net/route') =~ /#{Regexp.escape(name)}/ ? true : false),
         quality:  nil,
         essid:    nil
@@ -72,11 +73,7 @@ class Net < Arbi::Modules::Module
 
       if stats[name][:state]
         stats[name][:quality] = quality(name)
-        begin
-          stats[name][ :essid ] = essid(name) if stats[name][:quality]
-        rescue Exception => e
-          Arbi.debug("ESSID: #{e}")
-        end
+        stats[name][ :essid ] = essid(name) if stats[name][:quality]
       end
 
       @prev[ :up ][name] = up
@@ -88,7 +85,6 @@ class Net < Arbi::Modules::Module
     Arbi.debug(e.to_s)
   end
 
-protected
   def quality(interface)
     File.read('/proc/net/wireless').match(/^\s*#{Regexp.escape(interface)}:.*$/)[0].strip.split(/:?\s+/)[2].gsub('.', '') + "%"
   rescue

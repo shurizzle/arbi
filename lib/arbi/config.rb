@@ -30,10 +30,10 @@ class Config < Hash
     self.parse
   end
 
-  def parse(file = '/etc/arbi.conf')
-    config = YAML.load_file(file)
-  rescue
-    Arbi.debug "Config: Error in parsing"
+  def parse(file = '/etc/arbi.yaml')
+    config = ::YAML.load_file(file)
+  rescue Exception => e
+    Arbi.debug "Config: #{e}"
   ensure
     config ||= {}
     config[:server] ||= {}
