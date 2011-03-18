@@ -1,0 +1,23 @@
+#!/sbin/runscript
+# Copyright 1999-2007 Gentoo Foundation
+# Distributed under the terms of the GNU General Public License v2
+# $Header: $
+
+depend() {
+	need net
+	use logger
+}
+
+start() {
+	ebegin "Starting Arbi"
+	start-stop-daemon --start --quiet --exec /usr/bin/arbid \
+		--pidfile /var/run/arbid.pid --make-pidfile --background --
+	eend $?
+}
+
+stop() {
+	ebegin "Stopping Arbi"
+	start-stop-daemon --stop --quiet --exec /usr/bin/arbid \
+		--pidfile /var/run/arbid.pid
+	eend $?
+}

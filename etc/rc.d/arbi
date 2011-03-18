@@ -1,0 +1,50 @@
+#!/bin/bash
+
+. /etc/rc.conf
+. /etc/rc.d/functions
+PIDFILE="/var/run/arbi.pid"
+
+case "${1}" in
+  start)
+    stat_busy "Starting arbi daemon"
+    if [ -e "${PIDFILE}" ]; then
+      stat_fail
+    else
+      /usr/bin/arbid &>/dev/null &
+      PID=$!
+
+      if [ $? -gt 0 ]; then
+        stat_fail
+      else
+        echo $PID > "${PIDFILE}"
+        add_daemon arbi
+        stat_done
+      fi
+    fi
+  ;;
+  stop)
+    stat_busy "Stopping arbi daemon"
+    if [ -e "${PIDFILE}" ]; then
+      kill -9 "$(cat "${PIDFILE}")"
+
+      if [ $? -gt 0 ]; then
+        stat_fail
+        rm "${PIDFILE}" &>/dev/null
+      else
+        rm_daemon arbi
+        stat_done
+        rm "${PIDFILE}" &>/dev/null
+      fi
+    else
+      stat_fail
+    fi
+  ;;
+  restart)
+    $0 stop
+    $0 start
+  ;;
+  *)
+    echo "USAGE: $0 {start|stop|restart}"
+  ;;
+esac
+exit 0
