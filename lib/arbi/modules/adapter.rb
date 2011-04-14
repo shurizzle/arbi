@@ -17,6 +17,6 @@
 # along with arbi. If not, see <http://www.gnu.org/licenses/>.
 #++
 
-require 'arbi/modules/acpi/adapter'
+#require 'arbi/modules/acpi/adapter'
 
-require 'arbi/modules/sys/adapter' unless Arbi::Modules::Acpi::Adapter.valid?
+require 'arbi/modules/sys/adapter' #unless Arbi::Modules::Acpi::Adapter.valid?

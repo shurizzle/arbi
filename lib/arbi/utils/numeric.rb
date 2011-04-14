@@ -32,14 +32,13 @@ module Scalar
     ?u => 10 ** -9, ?m => 10 ** -3, ?c => 10 ** -2, ?d => 10 ** -1
   }
 
-  alias __method_missing__ method_missing
-  def method_missing(sym, *args, &blk)
-    if MULTIPLIERS.include?(sym.to_s)
-      self / MULTIPLIERS[sym.to_s]
-    else
-      self.__method_missing__(sym, *args, &blk) if sym != :to_str
-    end
-  end
+  MULTIPLIERS.keys.each {|key|
+    (class << self; self; end).__send__(:define_method, key) {
+      self / MULTIPLIERS[key]
+    }
+  }
+
+  alias to_str to_s
 end
 
   def self.parse(str)

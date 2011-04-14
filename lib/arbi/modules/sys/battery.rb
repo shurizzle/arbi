@@ -55,16 +55,27 @@ protected
       last_full_capacity: File.read("#{dir}/energy_full").strip.to_i,
       remaining_capacity: File.read("#{dir}/energy_now").strip.to_i,
       present:            (File.read("#{dir}/present").strip.to_i.zero? ? false : true),
-      charging_state:     File.read("#{dir}/status").strip.downcase.gsub(/^full$/, 'charged')
+      charging_state:     File.read("#{dir}/status").strip.downcase.gsub(/^full$/, 'charged'),
+      present_rate:       File.read("#{dir}/power_now").strip.to_i
     }
 
     return not_present(File.basename(dir)) unless raw[:present]
+
+    # time remaining
+    remain =  if raw[:charging_state] == 'discharging'
+                total = raw[:remaining_capacity].to_f / raw[:present_rate]
+                hours = total.floor
+                "%dh%dm" % [hours, ((total - hours) * 60).floor]
+              else
+                false
+              end
 
     {
       name:     File.basename(dir),
       sanity:   ("%.1f%%" % [100.0 / raw[:design_capacity] * raw[:last_full_capacity]]),
       state:    raw[:charging_state],
-      percent:  ("%.1f%%" % [100.0 / raw[:last_full_capacity] * raw[:remaining_capacity]])
+      percent:  ("%.1f%%" % [100.0 / raw[:last_full_capacity] * raw[:remaining_capacity]]),
+      remain:   remain
     }
   end
 
@@ -80,7 +91,8 @@ protected
       name:     'AVERAGE',
       sanity:   false,
       state:    false,
-      percent:  avg
+      percent:  avg,
+      remain:   false
     }
   end
 
@@ -89,7 +101,8 @@ protected
       name:     name,
       sanity:   false,
       state:    false,
-      percent:  false
+      percent:  false,
+      remain:   false
     }
   end
 end
