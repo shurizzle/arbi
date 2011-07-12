@@ -39,7 +39,7 @@ class Diskstat < Module
         diskstat = Sys::Filesystem.stat(device[:point])
         device.merge!({
           usage: "#{100 - (100.0 / diskstat.blocks  * diskstat.blocks_available).round}%",
-          space:  self.unitize(diskstat.blocks * diskstat.fragment_size)
+          space:  self.unitize(diskstat.blocks * diskstat.block_size)
         })
 
         @data << device
@@ -63,8 +63,8 @@ protected
   end
 
   def unitize misure
-    u = 'b'
-    %w(Kb Mb Gb Tb).each {|i|
+    u = 'B'
+    %w(kB MB GB TB).each {|i|
       if misure >= 1024
         misure /= 1024.0
         u = i

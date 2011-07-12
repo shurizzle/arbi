@@ -19,6 +19,24 @@
 
 require 'socket'
 
+module Wireless
+  def quality(ifname)
+    File.read('/proc/net/wireless').match(/^\s*#{Regexp.escape(ifname)}:.*$/)[0].strip.split(/:?\s+/)[2].gsub('.', '') + "%"
+  rescue
+    nil
+  end
+
+  def self.essid (ifname)
+    iwreq = [ifname, " " * 32, 32, 0].pack("a16pII")
+    sock = ::Socket.new(:INET, :DGRAM, 0)
+    sock.ioctl(0x8B1B, iwreq)
+    return iwreq.unpack("a16pII")[1].strip
+  rescue Exception => e
+    Arbi.debug(e.backtrace[0] + ': ' + e.to_s + "\n" + e.backtrace[1..-1].join("\n"))
+    nil
+  end
+end
+
 module Arbi
 
 module Modules
@@ -72,8 +90,8 @@ protected
       }
 
       if stats[name][:state]
-        stats[name][:quality] = quality(name)
-        stats[name][ :essid ] = essid(name) if stats[name][:quality]
+        stats[name][:quality] = Wireless.quality(name)
+        stats[name][ :essid ] = Wireless.essid(name) if stats[name][:quality]
       end
 
       @prev[ :up ][name] = up
@@ -83,21 +101,6 @@ protected
     self.datas = stats
   rescue Exception => e
     Arbi.debug(e.to_s)
-  end
-
-  def quality(interface)
-    File.read('/proc/net/wireless').match(/^\s*#{Regexp.escape(interface)}:.*$/)[0].strip.split(/:?\s+/)[2].gsub('.', '') + "%"
-  rescue
-    nil
-  end
-
-  def essid(interface)
-    iwreq = [interface, " " * 32, 32, 0].pack("a16pII")
-    sock = Socket.new(Socket::AF_INET, Socket::SOCK_DGRAM, 0)
-    sock.ioctl(0x8B1B, iwreq)
-    return iwreq.unpack("a16pII")[1].strip
-  rescue
-    nil
   end
 
   def datas=(stats)

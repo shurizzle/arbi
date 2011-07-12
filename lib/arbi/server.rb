@@ -19,6 +19,7 @@
 
 require 'eventmachine'
 require 'arbi/modules'
+require 'arbi/server/acpi'
 
 module Arbi
 
@@ -52,15 +53,19 @@ class Server
   end
 
   def start
-    EventMachine.run {
-      TimeLine.run
-      EventMachine.start_server(@address, @port, Arbi::Server::Server)
-      Arbi.debug("Starting server on #{@address}:#{@port}")
-    }
+    EventMachine.epoll = true if EventMachine.epoll?
+    EventMachine.kqueue = true if EventMachine.kqueue?
+    TimeLine.run
+    Arbi::Server::Acpi.run
+    EventMachine.start_server(@address, @port, Arbi::Server::Server)
+    Arbi.debug("Starting server on #{@address}:#{@port}")
+    nil
   end
 
   def self.start(address = '127.0.0.1', port = 6969)
-    self.new(address, port).start
+    s = self.new(address, port)
+    s.start
+    s
   end
 end
 

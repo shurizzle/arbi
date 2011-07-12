@@ -39,6 +39,9 @@ class Config < Hash
     config[:server] ||= {}
     config[:server][:address] ||= '127.0.0.1'
     config[:server][:port] ||= 6969
+    config[:server][:acpi] ||= {}
+    config[:server][:acpi][:listen] ||= '/var/run/acpid.socket'
+    config[:server][:acpi][:bind] ||= '/var/run/arbid.socket'
     config[:client] ||= {}
     config[:client][:address] ||= '127.0.0.1'
     config[:client][:port] ||= 6969
@@ -57,12 +60,29 @@ class Config < Hash
   end
 
   class << self
-    def [](*args)
-      self.instance.[](*args)
+    alias __method_missing__ method_missing
+    def method_missing(sym, *args, &blk)
+      if self.instance.respond_to?(sym)
+        self.instance.send(sym, *args, &blk)
+      else
+        self.__method_missing__(sym, *args, &blk)
+      end
     end
 
-    def parse(*args)
-      self.instance.parse(*args)
+    def [](*args)
+      self.instance.send(:[], *args)
+    end
+
+    def []=(*args)
+      self.instance.send(:[]=, *args)
+    end
+
+    def inspect
+      self.instance.inspect
+    end
+
+    def to_s
+      self.instance.to_s
     end
   end
 end

@@ -32,7 +32,9 @@ class Server
 
     self.parse_args
 
-    Arbi::Server.start(@address, @port)
+    EventMachine.run {
+      Arbi::Server.start(@address, @port)
+    }
   end
 
 protected
