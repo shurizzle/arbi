@@ -63,9 +63,9 @@ class Server
   end
 
   def self.start(address = '127.0.0.1', port = 6969)
-    s = self.new(address, port)
-    s.start
-    s
+    self.new(address, port).tap {|s|
+      s.start
+    }
   end
 end
 

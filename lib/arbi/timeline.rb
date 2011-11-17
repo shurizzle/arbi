@@ -46,24 +46,34 @@ module TimeLine
       raise ArgumentError, "proc must be a Proc" unless blk.is_a?(Proc)
       @proc = blk
     end
+
+    def run
+      EventMachine::PeriodicTimer.new(self.every) {
+        timeout(self.timeout) {
+          self.proc.call
+        }
+      }
+    end
   end
 
   class << self
+    def running?
+      @running ||= false
+    end
+
     def register(job)
       raise ArgumentError, "job must be a TimeLine::Job" unless job.is_a?(TimeLine::Job)
       @@jobs ||= []
+      job.run if running?
       @@jobs << job
     end
 
     def run
       @@jobs ||= []
       @@jobs.each {|job|
-        EventMachine::PeriodicTimer.new(job.every) do
-          timeout(job.timeout) {
-            job.proc.call
-          }
-        end
+        job.run
       }
+      @running = true
       self
     end
   end
