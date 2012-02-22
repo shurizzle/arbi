@@ -29,7 +29,7 @@ class Version < Module
   end
 
   def refresh
-    @data = Arbi::VERSION
+    @data ||= Arbi::VERSION
   end
 
   def format

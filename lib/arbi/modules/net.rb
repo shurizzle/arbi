@@ -20,7 +20,7 @@
 require 'socket'
 
 module Wireless
-  def quality(ifname)
+  def self.quality(ifname)
     File.read('/proc/net/wireless').match(/^\s*#{Regexp.escape(ifname)}:.*$/)[0].strip.split(/:?\s+/)[2].gsub('.', '') + "%"
   rescue
     nil
