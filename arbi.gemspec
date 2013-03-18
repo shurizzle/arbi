@@ -1,6 +1,9 @@
+$:.unshift File.realpath(File.join(__FILE__, '..', 'lib'))
+require 'arbi/version'
+
 Gem::Specification.new {|g|
     g.name          = 'arbi'
-    g.version       = '1.0.8.5'
+    g.version       = Arbi::VERSION
     g.author        = 'shura'
     g.email         = 'shura1991@gmail.com'
     g.homepage      = 'http://github.com/shurizzle/arbi'
