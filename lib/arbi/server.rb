@@ -19,7 +19,6 @@
 
 require 'eventmachine'
 require 'arbi/modules'
-require 'arbi/server/acpi'
 
 module Arbi
 
@@ -56,7 +55,6 @@ class Server
     EventMachine.epoll = true if EventMachine.epoll?
     EventMachine.kqueue = true if EventMachine.kqueue?
     TimeLine.run
-    Arbi::Server::Acpi.run
     EventMachine.start_server(@address, @port, Arbi::Server::Server)
     Arbi.debug("Starting server on #{@address}:#{@port}")
     nil
