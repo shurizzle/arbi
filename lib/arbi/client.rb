@@ -40,7 +40,7 @@ class Client
   def get(what = 'help')
     @sock.print "#{what.strip}\r\n"
     @sock.flush
-    JSON.parse(@sock.gets.strip)
+    JSON.parse(@sock.gets.strip, create_additions: true)
   rescue Errno::EPIPE
     self.connect
     retry
