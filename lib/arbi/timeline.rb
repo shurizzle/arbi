@@ -49,7 +49,7 @@ module TimeLine
 
     def run
       EventMachine::PeriodicTimer.new(self.every) {
-        timeout(self.timeout) {
+        ::Timeout.timeout(self.timeout) {
           self.proc.call
         }
       }
